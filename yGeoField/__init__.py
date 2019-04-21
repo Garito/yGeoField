@@ -4,13 +4,16 @@ import geojson
 
 class yGeoField(fields.Field):
   def _deserialize(self, value, attr, data):
+    if self.required and not value:
+      raise ValidationError(self.error_messages["required"])
     try:
       result = getattr(geojson, value["type"])(value["coordinates"])
       if not result.is_valid:
         raise Exception(result.errors())
       return result
     except Exception as e:
-      raise ValidationError('Invalid geojson `%s` `%s`' % (str(value), str(e)))
+      
+      raise ValidationError('Invalid geojson %s: %s' % (str(value), str(e)))
     
   def _serialize(self, value, attr, obj):
     if value is None:
